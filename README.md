@@ -1,7 +1,7 @@
 # Introduction
 This repository is dedicated for developers who want to understand how to build publicly distributed applications featuring Aidlab sensor integration. Android-Example will guide you how to connect with Aidlab health tracker, so it will save your time and make real development faster and easier. 
 
-You can check our [website](www.aidlab.com/developer) to get the answers for the most common questions related to Aidlab.
+You can check our [website](http://www.aidlab.com/developer) to get the answers for the most common questions related to Aidlab.
 
 # Technical overview
 This examples of Aidlab was build for Android 4.3+ (Api level 18+), BLE-capable devices in Android Studio 2.2.2, using it's embedded JDK.
