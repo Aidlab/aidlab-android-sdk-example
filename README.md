@@ -6,7 +6,7 @@ You can check our [website](https://www.aidlab.com/developer) to get the answers
 
 # Technical overview
 
-This examples of Aidlab was build for Android 4.3+ (Api level 18+), in Android Studio 3.3, using it's embedded JDK.
+This examples of Aidlab was build for Android 5.0+ (API level 21+), in Android Studio 3.3.
 
 Connect with Aidlab to use sensors and collected data. You can ask the Aidlab for the readings listed below:
 
