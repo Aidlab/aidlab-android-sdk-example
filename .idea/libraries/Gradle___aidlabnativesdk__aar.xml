@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="Gradle: :aidlabnativesdk:@aar">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/aidlabnativesdk.aar/8d73df00b88c58a5bda6be05f27a931b/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/aidlabnativesdk.aar/8d73df00b88c58a5bda6be05f27a931b/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
