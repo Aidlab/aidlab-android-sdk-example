@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Android-Example.iml" filepath="$PROJECT_DIR$/Android-Example.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Android-Example-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Android-Example-app.iml" group="Android-Example/app" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/aidlab-Android-Example.iml" filepath="$PROJECT_DIR$/.idea/modules/aidlab-Android-Example.iml" group="Android-Example" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
