@@ -7,7 +7,7 @@ android {
     buildToolsVersion "28.0.3"
     defaultConfig {
         applicationId "com.aidlab.example"
-        minSdkVersion 21
+        minSdkVersion 25
         targetSdkVersion 26
         versionCode 1
         versionName "1.0"
