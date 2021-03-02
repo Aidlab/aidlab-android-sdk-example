@@ -14,8 +14,9 @@ import com.aidlab.sdk.communication.*
 
 import android.content.Intent
 import android.os.Handler
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Looper
 import android.widget.TextView
 
 import java.util.*
@@ -37,7 +38,6 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
         completeTextSpace()
 
         connectedDevice = null
-        aidlabSDK = AidlabSDK(this, this)
 
         /// Start the bluetooth check process - Request necessary permissions and ask the user to
         /// enable Bluetooth if it's disabled
@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun onScanFailed(errorCode: Int) {}
 
-    override fun onAidlabDetected(aidlab: Aidlab) {
+    override fun onAidlabDetected(aidlab: Aidlab, rssi: Int) {
 
         /// Connect to first found device
         if (connectedDevice == null) {
@@ -132,17 +132,17 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
         }
     }
 
-    override fun didReceiveECG(aidlab: IAidlab, timestamp: Long, value: Float) {
+    override fun didReceiveECG(aidlab: IAidlab, timestamp: Long, values: FloatArray) {
 
         runOnUiThread {
-            textView2?.text = "ECG: $value"
+            textView2?.text = "ECG: ${values[0]}"
         }
     }
 
-    override fun didReceiveRespiration(aidlab: IAidlab, timestamp: Long, value: Float) {
+    override fun didReceiveRespiration(aidlab: IAidlab, timestamp: Long, values: FloatArray) {
 
         runOnUiThread {
-            textView3?.text = "RESP: $value"
+            textView3?.text = "RESP: ${values[0]}"
         }
     }
 
@@ -175,7 +175,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun didReceiveQuaternion(aidlab: IAidlab, timestamp: Long, qw: Float, qx: Float, qy: Float, qz: Float) {}
 
-    override fun didReceiveOrientation(aidlab: IAidlab, timestamp: Long, roll: Float, pitch: Float, yaw: Float) {}
+    override fun didReceiveOrientation(aidlab: IAidlab, timestamp: Long, roll: Float, pitch: Float, yaw: Float, bodyPosition: BodyPosition) {}
 
     override fun didReceiveActivity(aidlab: IAidlab, timestamp: Long, activity: ActivityType) {}
 
@@ -195,9 +195,9 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun syncStateDidChange(aidlab: IAidlab, state: SyncState) {}
 
-    override fun didReceivePastECG(aidlab: IAidlab, timestamp: Long, value: Float) {}
+    override fun didReceivePastECG(aidlab: IAidlab, timestamp: Long, values: FloatArray) {}
 
-    override fun didReceivePastRespiration(aidlab: IAidlab, timestamp: Long, value: Float) {}
+    override fun didReceivePastRespiration(aidlab: IAidlab, timestamp: Long, values: FloatArray) {}
 
     override fun didReceivePastSkinTemperature(aidlab: IAidlab, timestamp: Long, value: Float) {}
 
@@ -211,17 +211,21 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun didReceivePastSteps(aidlab: IAidlab, timestamp: Long, value: Long) {}
 
+    override fun didReceiveMessage(aidlab: IAidlab, process: String, message: String) {}
+
     //-- Private -----------------------------------------------------------------------------------
 
     private var aidlab: IAidlab? = null
 
-    private var aidlabSDK: AidlabSDK = AidlabSDK(this, this)
+    private val aidlabSDK: AidlabSDK by lazy {
+        AidlabSDK(this, this)
+    }
 
     private var connectedDevice: Aidlab? = null
 
     private var lastConnectedDevice: Aidlab? = null
 
-    private val handler = Handler()
+    private val handler = Handler(Looper.getMainLooper())
 
     private var textView1: TextView? = null
     private var textView2: TextView? = null
