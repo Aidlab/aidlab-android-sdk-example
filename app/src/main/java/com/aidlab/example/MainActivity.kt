@@ -18,8 +18,9 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Looper
 import android.widget.TextView
-
+import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
+import kotlin.concurrent.fixedRateTimer
 
 class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, AidlabSynchronizationDelegate {
 
@@ -34,6 +35,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
         textView4 = findViewById(R.id.textView4)
         textView5 = findViewById(R.id.textView5)
         textView6 = findViewById(R.id.textView6)
+        chartView = findViewById(R.id.chartView)
 
         completeTextSpace()
 
@@ -43,6 +45,20 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
         /// enable Bluetooth if it's disabled
         textView1?.text = "Starting bluetooth..."
         aidlabSDK.checkBluetooth(this)
+
+        startTimer()
+    }
+
+    private fun  startTimer() {
+
+        if (timerTask != null) return
+
+        timerTask = fixedRateTimer("timer", false, 0, 1000L / 20) {
+
+            runOnUiThread {
+                chartView?.update()
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -125,7 +141,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
         }
     }
 
-    override fun didDisconnectAidlab(aidlab: IAidlab) {
+    override fun didDisconnectAidlab(aidlab: IAidlab, disconnectReason: DisconnectReason) {
 
         runOnUiThread {
             textView1?.text = "Disconnected"
@@ -136,6 +152,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
         runOnUiThread {
             textView2?.text = "ECG: ${values[0]}"
+            values.forEach { chartView?.addECGSample(it) }
         }
     }
 
@@ -143,6 +160,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
         runOnUiThread {
             textView3?.text = "RESP: ${values[0]}"
+            values.forEach { chartView?.addRespirationSample(it) }
         }
     }
 
@@ -160,12 +178,14 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
         }
     }
 
-    override fun didReceiveHeartRate(aidlab: IAidlab, timestamp: Long, hrv: IntArray, heartRate: Int) {
+    override fun didReceiveHeartRate(aidlab: IAidlab, timestamp: Long, heartRate: Int) {
 
         runOnUiThread {
-            textView6?.text = String.format("HRV ${hrv.joinToString(" ", prefix = "[", postfix = "]")} HR $heartRate")
+            textView6?.text = String.format("HR $heartRate")
         }
     }
+
+    override fun didReceiveHrv(aidlab: IAidlab, timestamp: Long, hrv: Int) {}
 
     override fun didReceiveAccelerometer(aidlab: IAidlab, timestamp: Long, ax: Float, ay: Float, az: Float) {}
 
@@ -175,7 +195,9 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun didReceiveQuaternion(aidlab: IAidlab, timestamp: Long, qw: Float, qx: Float, qy: Float, qz: Float) {}
 
-    override fun didReceiveOrientation(aidlab: IAidlab, timestamp: Long, roll: Float, pitch: Float, yaw: Float, bodyPosition: BodyPosition) {}
+    override fun didReceiveOrientation(aidlab: IAidlab, timestamp: Long, roll: Float, pitch: Float, yaw: Float) {}
+
+    override fun didReceiveBodyPosition(aidlab: IAidlab, timestamp: Long, bodyPosition: BodyPosition) {}
 
     override fun didReceiveActivity(aidlab: IAidlab, timestamp: Long, activity: ActivityType) {}
 
@@ -201,7 +223,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun didReceivePastSkinTemperature(aidlab: IAidlab, timestamp: Long, value: Float) {}
 
-    override fun didReceivePastHeartRate(aidlab: IAidlab, timestamp: Long, hrv: IntArray, heartRate: Int) {}
+    override fun didReceivePastHeartRate(aidlab: IAidlab, timestamp: Long, heartRate: Int) {}
 
     override fun didReceiveUnsynchronizedSize(aidlab: IAidlab, unsynchronizedSize: Int) {}
 
@@ -211,9 +233,32 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun didReceivePastSteps(aidlab: IAidlab, timestamp: Long, value: Long) {}
 
+    override fun didDetectPastUserEvent(timestamp: Long) {}
+
+    override fun didReceivePastAccelerometer(aidlab: IAidlab, timestamp: Long, ax: Float, ay: Float, az: Float) {}
+
+    override fun didReceivePastBodyPosition(aidlab: IAidlab, timestamp: Long, bodyPosition: BodyPosition) {}
+
+    override fun didReceivePastGyroscope(aidlab: IAidlab, timestamp: Long, qx: Float, qy: Float, qz: Float) {}
+
+    override fun didReceivePastHrv(aidlab: IAidlab, timestamp: Long, hrv: Int) {}
+
+    override fun didReceivePastMagnetometer(aidlab: IAidlab, timestamp: Long, mx: Float, my: Float, mz: Float) {}
+
+    override fun didReceivePastOrientation(aidlab: IAidlab, timestamp: Long, roll: Float, pitch: Float, yaw: Float) {}
+
+    override fun didReceivePastPressure(aidlab: IAidlab, timestamp: Long, values: IntArray) {}
+
+    override fun didReceivePastQuaternion(aidlab: IAidlab, timestamp: Long, qw: Float, qx: Float, qy: Float, qz: Float) {}
+
+    override fun didReceivePastSoundFeatures(aidlab: IAidlab, values: FloatArray) {}
+
+    override fun didReceivePastSoundVolume(aidlab: IAidlab, timestamp: Long, value: Int) {}
+
     override fun didReceiveMessage(aidlab: IAidlab, process: String, message: String) {}
 
     //-- Private -----------------------------------------------------------------------------------
+    private var timerTask: Timer? = null
 
     private var aidlab: IAidlab? = null
 
@@ -233,6 +278,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
     private var textView4: TextView? = null
     private var textView5: TextView? = null
     private var textView6: TextView? = null
+    private var chartView: ChartView? = null
 
     private fun completeTextSpace() {
 
@@ -240,6 +286,6 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
         textView3?.text = "RESP --"
         textView4?.text = "Battery state of charge  --"
         textView5?.text = "Skin temperature --"
-        textView6?.text = "HRV -- HR --"
+        textView6?.text = "HR --"
     }
 }
