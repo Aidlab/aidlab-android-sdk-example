@@ -205,6 +205,8 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun didReceiveRespirationRate(aidlab: IAidlab, timestamp: Long, value: Int) {}
 
+    override fun didReceiveSignalQuality(aidlab: IAidlab, timestamp: Long, value: Int) {}
+
     override fun wearStateDidChange(aidlab: IAidlab, wearState: WearState) {}
 
     override fun didDetectExercise(aidlab: IAidlab, exercise: Exercise) {}
@@ -225,9 +227,11 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun didReceivePastHeartRate(aidlab: IAidlab, timestamp: Long, heartRate: Int) {}
 
-    override fun didReceiveUnsynchronizedSize(aidlab: IAidlab, unsynchronizedSize: Int) {}
+    override fun didReceiveUnsynchronizedSize(aidlab: IAidlab, unsynchronizedSize: Int, syncBytesPerSecond: Float) {}
 
     override fun didReceivePastRespirationRate(aidlab: IAidlab, timestamp: Long, value: Int) {}
+
+    override fun didReceivePastSignalQuality(aidlab: IAidlab, timestamp: Long, value: Int) {}
 
     override fun didReceivePastActivity(aidlab: IAidlab, timestamp: Long, activity: ActivityType) {}
 
