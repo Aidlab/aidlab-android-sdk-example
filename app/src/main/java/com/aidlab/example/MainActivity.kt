@@ -185,7 +185,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
         }
     }
 
-    override fun didReceiveHrv(aidlab: IAidlab, timestamp: Long, hrv: Int) {}
+    override fun didReceiveRr(aidlab: IAidlab, timestamp: Long, rr: Int) {}
 
     override fun didReceiveAccelerometer(aidlab: IAidlab, timestamp: Long, ax: Float, ay: Float, az: Float) {}
 
@@ -245,7 +245,7 @@ class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, Aid
 
     override fun didReceivePastGyroscope(aidlab: IAidlab, timestamp: Long, qx: Float, qy: Float, qz: Float) {}
 
-    override fun didReceivePastHrv(aidlab: IAidlab, timestamp: Long, hrv: Int) {}
+    override fun didReceivePastRr(aidlab: IAidlab, timestamp: Long, rr: Int) {}
 
     override fun didReceivePastMagnetometer(aidlab: IAidlab, timestamp: Long, mx: Float, my: Float, mz: Float) {}
 
