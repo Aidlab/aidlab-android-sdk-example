@@ -6,6 +6,6 @@ You can check our [website](https://www.aidlab.com/developer) to get the answers
 
 # Technical overview
 
-This examples of Aidlab was build for Android 7.1+ (API level 25+), in Android Studio 4.1.2.
+This examples of Aidlab was build for Android 7.1+ (API level 25+), in Android Studio 2023.2.1.
 
 More information and detailed documentation can be found on our [website](https://www.aidlab.com/developer/docs/).

@@ -1,295 +1,448 @@
 /**
- *
- * MainActivity.kt
- * Android-Example
- *
  * Created by Michal Baranski on 03.11.2016.
- * Copyright (c) 2016-2020 Aidlab. MIT License.
- *
+ * Copyright (c) 2016-2024 Aidlab. MIT License.
  */
 
 package com.aidlab.example
 
-import com.aidlab.sdk.communication.*
-
-import android.content.Intent
-import android.os.Handler
-import androidx.appcompat.app.AppCompatActivity
+import android.Manifest
+import android.os.Build
 import android.os.Bundle
-import android.os.Looper
-import android.widget.TextView
-import kotlinx.android.synthetic.main.activity_main.*
+import android.widget.Toast
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.aidlab.sdk.*
 import java.util.*
-import kotlin.concurrent.fixedRateTimer
 
-class MainActivity : AppCompatActivity(), AidlabDelegate, AidlabSDKDelegate, AidlabSynchronizationDelegate {
+data class DeviceData(
+    val name: MutableState<String>,
+    val firmwareRevision: MutableState<String>,
+    val hardwareRevision: MutableState<String>,
+    val address: MutableState<String>,
+    val battery: MutableState<Int?>,
+    val wearState: MutableState<String?>,
+    val skinTemperature: MutableState<Float?>,
+    val activity: MutableState<String?>,
+    val steps: MutableState<Int>,
+    val ecgSamples: MutableState<List<Float>>,
+)
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate {
+    private lateinit var aidlabManager: AidlabManager
 
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+    private var connectedDevice = mutableStateOf<Device?>(null)
+    private val detectedDevices = mutableStateListOf<Device>()
 
-        textView1 = findViewById(R.id.textView)
-        textView2 = findViewById(R.id.textView2)
-        textView3 = findViewById(R.id.textView3)
-        textView4 = findViewById(R.id.textView4)
-        textView5 = findViewById(R.id.textView5)
-        textView6 = findViewById(R.id.textView6)
-        chartView = findViewById(R.id.chartView)
+    private var deviceData: DeviceData? = null
 
-        completeTextSpace()
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            val allPermissionsGranted = permissions.entries.all { it.value }
+            if (allPermissionsGranted) {
+                aidlabManager.scan()
+            } else {
+                Toast.makeText(this, "Bluetooth permission is required", Toast.LENGTH_SHORT).show()
+            }
+        }
 
-        connectedDevice = null
-
-        /// Start the bluetooth check process - Request necessary permissions and ask the user to
-        /// enable Bluetooth if it's disabled
-        textView1?.text = "Starting bluetooth..."
-        aidlabSDK.checkBluetooth(this)
-
-        startTimer()
+    private fun checkAndStartScan() {
+        val requiredPermissions =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.ACCESS_FINE_LOCATION)
+            } else {
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        requestPermissionLauncher.launch(requiredPermissions)
     }
 
-    private fun  startTimer() {
+    @Composable
+    fun MainActivityScreen(detectedDevices: List<Device>) {
+        val isScanning = remember { mutableStateOf(false) }
 
-        if (timerTask != null) return
+        if (connectedDevice.value != null) {
+            deviceDetailsScreen(device = deviceData!!, onDisconnect = {
+                connectedDevice.value?.disconnect()
+            })
+        } else {
+            deviceScanScreen(
+                isScanning = isScanning,
+                detectedDevices = detectedDevices,
+                onScanClick = { checkAndStartScan() },
+                onStopScanClick = {
+                    aidlabManager.stopScan()
+                },
+                onDeviceClick = { device ->
+                    device.connect(this)
+                    isScanning.value = false
+                    aidlabManager.stopScan()
+                },
+            )
+        }
+    }
 
-        timerTask = fixedRateTimer("timer", false, 0, 1000L / 20) {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-            runOnUiThread {
-                chartView?.update()
+        aidlabManager = AidlabManager(this, this)
+
+        setContent {
+            MaterialTheme {
+                MainActivityScreen(detectedDevices)
             }
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
-        super.onActivityResult(requestCode, resultCode, data)
-
-        /// Activity result has to be passed to Aidlab system's callback manager for the Bluetooth
-        /// check process
-        aidlabSDK.callbackManager.onActivityResult(this, requestCode, resultCode, data)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        /// Permissions result has to be passed to Aidlab system's callback manager for the
-        /// Bluetooth check process
-        aidlabSDK.callbackManager.onRequestPermissionsResult(this, requestCode, permissions, grantResults)
-    }
-
-    //-- AidlabSDKDelegate --------------------------------------------------------------------
-
-    override fun onBluetoothStarted() {
-
-        /// Bluetooth check process completed - start scanning for devices
-        aidlabSDK.scanForDevices()
-    }
+    // -- AidlabManagerDelegate --------------------------------------------------------------------
 
     override fun onDeviceScanStarted() {
-
-        textView1?.text = "Looking for devices..."
+        Logger.log("MainActivity.onDeviceScanStarted()")
     }
 
     override fun onDeviceScanStopped() {
+        this.detectedDevices.clear()
+    }
 
-        if (connectedDevice == null) {
-            aidlabSDK.clearDeviceList()
-            aidlabSDK.scanForDevices()
+    override fun onDeviceScanFailed(errorCode: Int) {
+        Toast.makeText(
+            this,
+            "Scan failed: $errorCode",
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
+
+    override fun didDiscover(
+        device: Device,
+        rssi: Int,
+    ) {
+        // Don't add duplicated devices (based on address)
+        if (detectedDevices.none { it.address() == device.address() }) {
+            detectedDevices.add(device)
         }
     }
 
-    override fun onScanFailed(errorCode: Int) {}
+    // -- DeviceDelegate ---------------------------------------------------------------------------
 
-    override fun onAidlabDetected(aidlab: Aidlab, rssi: Int) {
+    override fun didConnect(device: Device) {
+        deviceData =
+            DeviceData(
+                name = mutableStateOf(device.name() ?: ""),
+                firmwareRevision = mutableStateOf(device.firmwareRevision ?: ""),
+                hardwareRevision = mutableStateOf(device.hardwareRevision ?: ""),
+                address = mutableStateOf(device.address()),
+                battery = mutableStateOf(null),
+                wearState = mutableStateOf(null),
+                skinTemperature = mutableStateOf(null),
+                activity = mutableStateOf("Unknown"),
+                steps = mutableStateOf(0),
+                ecgSamples = mutableStateOf(emptyList()),
+            )
+        this.connectedDevice.value = device
+        deviceData?.ecgSamples?.value = deviceData?.ecgSamples?.value?.takeLast(0)!!
 
-        /// Connect to first found device
-        if (connectedDevice == null) {
+        val dataTypes =
+            EnumSet.of(
+                DataType.ECG,
+                DataType.SKIN_TEMPERATURE,
+                DataType.STEPS,
+                DataType.ACTIVITY,
+            )
+        device.collect(dataTypes, dataTypes)
+    }
 
-            connectedDevice = aidlab
-            lastConnectedDevice = aidlab
+    override fun didDisconnect(
+        device: Device,
+        disconnectReason: DisconnectReason,
+    ) {
+        connectedDevice.value = null
+        deviceData = null
+        detectedDevices.clear()
 
-            aidlabSDK.stopDeviceScan()
-            textView1?.text = "Detected Aidlab. Connecting..."
+        Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show()
+    }
 
-            /// Wait for the scan to finish and connect to the device
-            val dataReceiver = this
+    override fun didReceiveECG(
+        device: Device,
+        timestamp: Long,
+        values: FloatArray,
+    ) {
+        deviceData?.ecgSamples?.value = (deviceData?.ecgSamples?.value!! + values.toList()).takeLast(2000)
+    }
 
-            val signals = EnumSet.of(Signal.ecg,  Signal.respiration, Signal.temperature,
-                    Signal.motion, Signal.battery, Signal.activity,
-                    Signal.orientation, Signal.steps, Signal.heartRate)
+    override fun didReceiveRespiration(
+        device: Device,
+        timestamp: Long,
+        values: FloatArray,
+    ) {}
 
-            handler.postDelayed({
-                connectedDevice?.connect(signals, true,  dataReceiver) /// Connect with all functions active
-            }, 100)
+    override fun didReceiveBatteryLevel(
+        device: Device,
+        stateOfCharge: Int,
+    ) {
+        deviceData?.battery?.value = stateOfCharge
+    }
+
+    override fun didReceiveSkinTemperature(
+        device: Device,
+        timestamp: Long,
+        value: Float,
+    ) {
+        deviceData?.skinTemperature?.value = value
+    }
+
+    override fun didReceiveAccelerometer(
+        device: Device,
+        timestamp: Long,
+        ax: Float,
+        ay: Float,
+        az: Float,
+    ) {}
+
+    override fun didReceiveGyroscope(
+        device: Device,
+        timestamp: Long,
+        qx: Float,
+        qy: Float,
+        qz: Float,
+    ) {}
+
+    override fun didReceiveMagnetometer(
+        device: Device,
+        timestamp: Long,
+        mx: Float,
+        my: Float,
+        mz: Float,
+    ) {}
+
+    override fun didReceiveQuaternion(
+        device: Device,
+        timestamp: Long,
+        qw: Float,
+        qx: Float,
+        qy: Float,
+        qz: Float,
+    ) {}
+
+    override fun didReceiveOrientation(
+        device: Device,
+        timestamp: Long,
+        roll: Float,
+        pitch: Float,
+        yaw: Float,
+    ) {}
+
+    override fun didReceiveBodyPosition(
+        device: Device,
+        timestamp: Long,
+        bodyPosition: BodyPosition,
+    ) {}
+
+    override fun didReceiveActivity(
+        device: Device,
+        timestamp: Long,
+        activity: ActivityType,
+    ) {
+        deviceData?.activity?.value = activity.toString()
+    }
+
+    override fun didReceiveSteps(
+        device: Device,
+        timestamp: Long,
+        value: Long,
+    ) {
+        deviceData?.steps?.value?.let {
+            deviceData?.steps?.value = it + value.toInt()
         }
     }
 
-    //-- Callbacks from Aidlab ---------------------------------------------------------------------
+    override fun didReceiveHeartRate(
+        device: Device,
+        timestamp: Long,
+        heartRate: Int,
+    ) {}
 
-    override fun didConnectAidlab(aidlab: IAidlab) {
-        println("MainActivity: Connected to Aidlab")
+    override fun didReceiveRr(
+        device: Device,
+        timestamp: Long,
+        rr: Int,
+    ) {}
 
-        if(connectedDevice == null)
-            connectedDevice = lastConnectedDevice
+    override fun didReceiveRespirationRate(
+        device: Device,
+        timestamp: Long,
+        value: Int,
+    ) {}
 
-        this.aidlab = aidlab
-
-        runOnUiThread {
-            textView1?.text = "Connected to ${connectedDevice?.address()}"
-        }
+    override fun wearStateDidChange(
+        device: Device,
+        wearState: WearState,
+    ) {
+        deviceData?.wearState?.value = wearState.toString()
     }
 
-    override fun didDisconnectAidlab(aidlab: IAidlab, disconnectReason: DisconnectReason) {
+    override fun didDetectExercise(
+        device: Device,
+        exercise: Exercise,
+    ) {}
 
-        runOnUiThread {
-            textView1?.text = "Disconnected"
-        }
+    override fun didReceiveSoundVolume(
+        device: Device,
+        timestamp: Long,
+        value: Int,
+    ) {}
+
+    override fun didReceiveCommand(device: Device) {}
+
+    override fun didReceiveError(error: String) {
+        Logger.debug("Error: $error")
     }
 
-    override fun didReceiveECG(aidlab: IAidlab, timestamp: Long, values: FloatArray) {
+    override fun syncStateDidChange(
+        device: Device,
+        state: SyncState,
+    ) {}
 
-        runOnUiThread {
-            textView2?.text = "ECG: ${values[0]}"
-            values.forEach { chartView?.addECGSample(it) }
-        }
-    }
+    override fun didReceiveUnsynchronizedSize(
+        device: Device,
+        unsynchronizedSize: Int,
+        syncBytesPerSecond: Float,
+    ) {}
 
-    override fun didReceiveRespiration(aidlab: IAidlab, timestamp: Long, values: FloatArray) {
+    override fun didReceivePastECG(
+        device: Device,
+        timestamp: Long,
+        values: FloatArray,
+    ) {}
 
-        runOnUiThread {
-            textView3?.text = "RESP: ${values[0]}"
-            values.forEach { chartView?.addRespirationSample(it) }
-        }
-    }
+    override fun didReceivePastRespiration(
+        device: Device,
+        timestamp: Long,
+        values: FloatArray,
+    ) {}
 
-    override fun didReceiveBatteryLevel(aidlab: IAidlab, stateOfCharge: Int) {
+    override fun didReceivePastSkinTemperature(
+        device: Device,
+        timestamp: Long,
+        value: Float,
+    ) {}
 
-        runOnUiThread {
-            textView4?.text = "Battery state of charge = $stateOfCharge"
-        }
-    }
+    override fun didReceivePastHeartRate(
+        device: Device,
+        timestamp: Long,
+        heartRate: Int,
+    ) {}
 
-    override fun didReceiveSkinTemperature(aidlab: IAidlab, timestamp: Long, value: Float) {
+    override fun didReceivePastRr(
+        device: Device,
+        timestamp: Long,
+        rr: Int,
+    ) {}
 
-        runOnUiThread {
-            textView5?.text = "Skin temperature $value"
-        }
-    }
+    override fun didReceivePastRespirationRate(
+        device: Device,
+        timestamp: Long,
+        value: Int,
+    ) {}
 
-    override fun didReceiveHeartRate(aidlab: IAidlab, timestamp: Long, heartRate: Int) {
+    override fun didReceivePastActivity(
+        device: Device,
+        timestamp: Long,
+        activity: ActivityType,
+    ) {}
 
-        runOnUiThread {
-            textView6?.text = String.format("HR $heartRate")
-        }
-    }
+    override fun didReceivePastSteps(
+        device: Device,
+        timestamp: Long,
+        value: Long,
+    ) {}
 
-    override fun didReceiveRr(aidlab: IAidlab, timestamp: Long, rr: Int) {}
+    override fun didReceivePastAccelerometer(
+        device: Device,
+        timestamp: Long,
+        ax: Float,
+        ay: Float,
+        az: Float,
+    ) {}
 
-    override fun didReceiveAccelerometer(aidlab: IAidlab, timestamp: Long, ax: Float, ay: Float, az: Float) {}
+    override fun didReceivePastGyroscope(
+        device: Device,
+        timestamp: Long,
+        qx: Float,
+        qy: Float,
+        qz: Float,
+    ) {}
 
-    override fun didReceiveGyroscope(aidlab: IAidlab, timestamp: Long, qx: Float, qy: Float, qz: Float) {}
+    override fun didReceivePastMagnetometer(
+        device: Device,
+        timestamp: Long,
+        mx: Float,
+        my: Float,
+        mz: Float,
+    ) {}
 
-    override fun didReceiveMagnetometer(aidlab: IAidlab, timestamp: Long, mx: Float, my: Float, mz: Float) {}
+    override fun didReceivePastQuaternion(
+        device: Device,
+        timestamp: Long,
+        qw: Float,
+        qx: Float,
+        qy: Float,
+        qz: Float,
+    ) {}
 
-    override fun didReceiveQuaternion(aidlab: IAidlab, timestamp: Long, qw: Float, qx: Float, qy: Float, qz: Float) {}
+    override fun didReceivePastOrientation(
+        device: Device,
+        timestamp: Long,
+        roll: Float,
+        pitch: Float,
+        yaw: Float,
+    ) {}
 
-    override fun didReceiveOrientation(aidlab: IAidlab, timestamp: Long, roll: Float, pitch: Float, yaw: Float) {}
+    override fun didReceivePastBodyPosition(
+        device: Device,
+        timestamp: Long,
+        bodyPosition: BodyPosition,
+    ) {}
 
-    override fun didReceiveBodyPosition(aidlab: IAidlab, timestamp: Long, bodyPosition: BodyPosition) {}
+    override fun didReceivePastSoundVolume(
+        device: Device,
+        timestamp: Long,
+        value: Int,
+    ) {}
 
-    override fun didReceiveActivity(aidlab: IAidlab, timestamp: Long, activity: ActivityType) {}
+    override fun didReceivePastPressure(
+        device: Device,
+        timestamp: Long,
+        values: IntArray,
+    ) {}
 
-    override fun didReceiveSteps(aidlab: IAidlab, timestamp: Long, value: Long) {}
-
-    override fun didReceiveRespirationRate(aidlab: IAidlab, timestamp: Long, value: Int) {}
-
-    override fun didReceiveSignalQuality(aidlab: IAidlab, timestamp: Long, value: Int) {}
-
-    override fun wearStateDidChange(aidlab: IAidlab, wearState: WearState) {}
-
-    override fun didDetectExercise(aidlab: IAidlab, exercise: Exercise) {}
-
-    override fun didReceiveSoundVolume(aidlab: IAidlab, timestamp: Long, value: Int) {}
-
-    override fun didReceiveCommand(aidlab: IAidlab) {}
-
-    override fun didReceiveError(error: String) {}
-
-    override fun syncStateDidChange(aidlab: IAidlab, state: SyncState) {}
-
-    override fun didReceivePastECG(aidlab: IAidlab, timestamp: Long, values: FloatArray) {}
-
-    override fun didReceivePastRespiration(aidlab: IAidlab, timestamp: Long, values: FloatArray) {}
-
-    override fun didReceivePastSkinTemperature(aidlab: IAidlab, timestamp: Long, value: Float) {}
-
-    override fun didReceivePastHeartRate(aidlab: IAidlab, timestamp: Long, heartRate: Int) {}
-
-    override fun didReceiveUnsynchronizedSize(aidlab: IAidlab, unsynchronizedSize: Int, syncBytesPerSecond: Float) {}
-
-    override fun didReceivePastRespirationRate(aidlab: IAidlab, timestamp: Long, value: Int) {}
-
-    override fun didReceivePastSignalQuality(aidlab: IAidlab, timestamp: Long, value: Int) {}
-
-    override fun didReceivePastActivity(aidlab: IAidlab, timestamp: Long, activity: ActivityType) {}
-
-    override fun didReceivePastSteps(aidlab: IAidlab, timestamp: Long, value: Long) {}
+    override fun didReceivePastSoundFeatures(
+        device: Device,
+        values: FloatArray,
+    ) {}
 
     override fun didDetectPastUserEvent(timestamp: Long) {}
 
-    override fun didReceivePastAccelerometer(aidlab: IAidlab, timestamp: Long, ax: Float, ay: Float, az: Float) {}
+    override fun didReceivePastSignalQuality(
+        device: Device,
+        timestamp: Long,
+        value: Int,
+    ) {}
 
-    override fun didReceivePastBodyPosition(aidlab: IAidlab, timestamp: Long, bodyPosition: BodyPosition) {}
+    override fun didReceiveMessage(
+        device: Device,
+        process: String,
+        message: String,
+    ) {}
 
-    override fun didReceivePastGyroscope(aidlab: IAidlab, timestamp: Long, qx: Float, qy: Float, qz: Float) {}
-
-    override fun didReceivePastRr(aidlab: IAidlab, timestamp: Long, rr: Int) {}
-
-    override fun didReceivePastMagnetometer(aidlab: IAidlab, timestamp: Long, mx: Float, my: Float, mz: Float) {}
-
-    override fun didReceivePastOrientation(aidlab: IAidlab, timestamp: Long, roll: Float, pitch: Float, yaw: Float) {}
-
-    override fun didReceivePastPressure(aidlab: IAidlab, timestamp: Long, values: IntArray) {}
-
-    override fun didReceivePastQuaternion(aidlab: IAidlab, timestamp: Long, qw: Float, qx: Float, qy: Float, qz: Float) {}
-
-    override fun didReceivePastSoundFeatures(aidlab: IAidlab, values: FloatArray) {}
-
-    override fun didReceivePastSoundVolume(aidlab: IAidlab, timestamp: Long, value: Int) {}
-
-    override fun didReceiveMessage(aidlab: IAidlab, process: String, message: String) {}
-
-    //-- Private -----------------------------------------------------------------------------------
-    private var timerTask: Timer? = null
-
-    private var aidlab: IAidlab? = null
-
-    private val aidlabSDK: AidlabSDK by lazy {
-        AidlabSDK(this, this)
-    }
-
-    private var connectedDevice: Aidlab? = null
-
-    private var lastConnectedDevice: Aidlab? = null
-
-    private val handler = Handler(Looper.getMainLooper())
-
-    private var textView1: TextView? = null
-    private var textView2: TextView? = null
-    private var textView3: TextView? = null
-    private var textView4: TextView? = null
-    private var textView5: TextView? = null
-    private var textView6: TextView? = null
-    private var chartView: ChartView? = null
-
-    private fun completeTextSpace() {
-
-        textView2?.text = "ECG  --"
-        textView3?.text = "RESP --"
-        textView4?.text = "Battery state of charge  --"
-        textView5?.text = "Skin temperature --"
-        textView6?.text = "HR --"
-    }
+    override fun didReceiveSignalQuality(
+        device: Device,
+        timestamp: Long,
+        value: Int,
+    ) {}
 }
