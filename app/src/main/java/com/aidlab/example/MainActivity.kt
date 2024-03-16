@@ -28,6 +28,9 @@ data class DeviceData(
     val address: MutableState<String>,
     val battery: MutableState<Int?>,
     val wearState: MutableState<String?>,
+    val heartRate: MutableState<Int?>,
+    val rr: MutableState<Int?>,
+    val respirationRate: MutableState<Int?>,
     val skinTemperature: MutableState<Float?>,
     val activity: MutableState<String?>,
     val steps: MutableState<Int>,
@@ -67,11 +70,11 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         val isScanning = remember { mutableStateOf(false) }
 
         if (connectedDevice.value != null) {
-            deviceDetailsScreen(device = deviceData!!, onDisconnect = {
+            DeviceDetailsScreen(device = deviceData!!, onDisconnect = {
                 connectedDevice.value?.disconnect()
             })
         } else {
-            deviceScanScreen(
+            DeviceScanScreen(
                 isScanning = isScanning,
                 detectedDevices = detectedDevices,
                 onScanClick = { checkAndStartScan() },
@@ -138,6 +141,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
                 address = mutableStateOf(device.address()),
                 battery = mutableStateOf(null),
                 wearState = mutableStateOf(null),
+                heartRate = mutableStateOf(null),
+                rr = mutableStateOf(null),
+                respirationRate = mutableStateOf(null),
                 skinTemperature = mutableStateOf(null),
                 activity = mutableStateOf("Unknown"),
                 steps = mutableStateOf(0),
@@ -149,6 +155,11 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         val dataTypes =
             EnumSet.of(
                 DataType.ECG,
+                DataType.HEART_RATE,
+                DataType.RESPIRATION,
+                DataType.RESPIRATION_RATE,
+                DataType.RR,
+                DataType.ORIENTATION,
                 DataType.SKIN_TEMPERATURE,
                 DataType.STEPS,
                 DataType.ACTIVITY,
@@ -170,15 +181,15 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     override fun didReceiveECG(
         device: Device,
         timestamp: Long,
-        values: FloatArray,
+        value: Float,
     ) {
-        deviceData?.ecgSamples?.value = (deviceData?.ecgSamples?.value!! + values.toList()).takeLast(2000)
+        deviceData?.ecgSamples?.value = (deviceData?.ecgSamples?.value!! + value).takeLast(2000)
     }
 
     override fun didReceiveRespiration(
         device: Device,
         timestamp: Long,
-        values: FloatArray,
+        value: Float,
     ) {}
 
     override fun didReceiveBatteryLevel(
@@ -241,7 +252,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         device: Device,
         timestamp: Long,
         bodyPosition: BodyPosition,
-    ) {}
+    ) {
+        deviceData?.wearState?.value = bodyPosition.toString()
+    }
 
     override fun didReceiveActivity(
         device: Device,
@@ -261,23 +274,42 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         }
     }
 
+    override fun didReceiveSoundFeatures(
+        device: Device,
+        timestamp: Long,
+        values: FloatArray,
+    ) {}
+
     override fun didReceiveHeartRate(
         device: Device,
         timestamp: Long,
         heartRate: Int,
-    ) {}
+    ) {
+        deviceData?.heartRate?.value = heartRate
+    }
 
     override fun didReceiveRr(
         device: Device,
         timestamp: Long,
         rr: Int,
-    ) {}
+    ) {
+        deviceData?.rr?.value = rr
+    }
+
+    override fun didReceivePressure(
+        device: Device,
+        timestamp: Long,
+        value: Int,
+    ) {
+    }
 
     override fun didReceiveRespirationRate(
         device: Device,
         timestamp: Long,
         value: Int,
-    ) {}
+    ) {
+        deviceData?.respirationRate?.value = value
+    }
 
     override fun wearStateDidChange(
         device: Device,
@@ -317,13 +349,13 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     override fun didReceivePastECG(
         device: Device,
         timestamp: Long,
-        values: FloatArray,
+        value: Float,
     ) {}
 
     override fun didReceivePastRespiration(
         device: Device,
         timestamp: Long,
-        values: FloatArray,
+        value: Float,
     ) {}
 
     override fun didReceivePastSkinTemperature(
@@ -418,11 +450,12 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     override fun didReceivePastPressure(
         device: Device,
         timestamp: Long,
-        values: IntArray,
+        value: Int,
     ) {}
 
     override fun didReceivePastSoundFeatures(
         device: Device,
+        timestamp: Long,
         values: FloatArray,
     ) {}
 

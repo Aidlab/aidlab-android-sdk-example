@@ -22,7 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun deviceDetailsScreen(
+fun DeviceDetailsScreen(
     device: DeviceData,
     onDisconnect: () -> Unit,
 ) {
@@ -36,15 +36,18 @@ fun deviceDetailsScreen(
                     .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            deviceInfoCard(label = "Name", value = device.name.value)
-            deviceInfoCard(label = "Address", value = device.address.value)
-            deviceInfoCard(label = "Firmware revision", value = device.firmwareRevision.value)
-            deviceInfoCard(label = "Hardware revision", value = device.hardwareRevision.value)
-            deviceInfoCard(label = "State of charge", value = device.battery.value?.toString() ?: "Unknown")
-            deviceInfoCard(label = "Wear state", value = device.wearState.value ?: "Unknown")
-            deviceInfoCard(label = "Activity", value = device.activity.value ?: "Unknown")
-            deviceInfoCard(label = "Steps", value = device.steps.value.toString())
-            deviceInfoCard(
+            DeviceInfoCard(label = "Name", value = device.name.value)
+            DeviceInfoCard(label = "Address", value = device.address.value)
+            DeviceInfoCard(label = "Firmware revision", value = device.firmwareRevision.value)
+            DeviceInfoCard(label = "Hardware revision", value = device.hardwareRevision.value)
+            DeviceInfoCard(label = "State of charge", value = device.battery.value?.toString() ?: "Unknown")
+            DeviceInfoCard(label = "Wear state", value = device.wearState.value ?: "Unknown")
+            DeviceInfoCard(label = "Heart rate", value = device.heartRate.value?.toString() ?: "Unknown")
+            DeviceInfoCard(label = "Respiration rate", value = device.respirationRate.value?.toString() ?: "Unknown")
+            DeviceInfoCard(label = "RR interval", value = device.rr.value?.toString() ?: "Unknown")
+            DeviceInfoCard(label = "Activity", value = device.activity.value ?: "Unknown")
+            DeviceInfoCard(label = "Steps", value = device.steps.value.toString())
+            DeviceInfoCard(
                 label = "Skin temperature",
                 value = device.skinTemperature.value?.let { String.format("%.1f °C", it) } ?: "Unknown",
             )
@@ -80,7 +83,7 @@ fun deviceDetailsScreen(
 }
 
 @Composable
-fun deviceInfoCard(
+fun DeviceInfoCard(
     label: String,
     value: String,
 ) {

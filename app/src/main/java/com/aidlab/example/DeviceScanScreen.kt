@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.aidlab.sdk.Device
 
 @Composable
-fun deviceScanScreen(
+fun DeviceScanScreen(
     isScanning: MutableState<Boolean>,
     detectedDevices: List<Device>,
     onScanClick: () -> Unit,
@@ -29,7 +29,7 @@ fun deviceScanScreen(
     Column(modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(detectedDevices) { device ->
-                deviceListItem(device = device, onDeviceClick = onDeviceClick)
+                DeviceListItem(device = device, onDeviceClick = onDeviceClick)
             }
         }
 

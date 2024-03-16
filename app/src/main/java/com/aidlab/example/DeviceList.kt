@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.aidlab.sdk.Device
 
 @Composable
-fun deviceListItem(
+fun DeviceListItem(
     device: Device,
     onDeviceClick: (Device) -> Unit,
 ) {
