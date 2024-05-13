@@ -303,6 +303,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     ) {
     }
 
+    override fun pressureWearStateDidChange(device: Device, wearState: WearState) {
+    }
+
     override fun didReceiveRespirationRate(
         device: Device,
         timestamp: Long,
