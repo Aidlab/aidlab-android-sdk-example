@@ -1,11 +1,8 @@
-# Introduction
+This repository is for developers who want to build publicly distributed applications integrating Aidlab and Aidmed One. The Android example demonstrates how to connect and pair with devices, helping you save time and accelerate development.
 
-This repository is dedicated for developers who want to understand how to build publicly distributed applications featuring Aidlab sensor integration. Android-Example will guide you how to connect with Aidlab, so it will save your time and make real development faster and easier. 
+For answers to common questions about Aidlab, visit our [developer portal](https://www.aidlab.com/developer).
 
-You can check our [website](https://www.aidlab.com/developer) to get the answers for the most common questions related to Aidlab.
-
-# Technical overview
-
-This examples of Aidlab was build for Android 7.1+ (API level 25+), in Android Studio 2023.2.1.
-
-More information and detailed documentation can be found on our [website](https://www.aidlab.com/developer/docs/).
+## Technical overview
+- Requires Android 9+ (API level 28+)
+- compileSdk 36, targetSdk 36
+- Works with recent Android Studio versions (e.g., 2025.1.2+)
