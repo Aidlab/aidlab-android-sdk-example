@@ -248,6 +248,27 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         yaw: Float,
     ) {}
 
+    override fun didReceiveEDA(
+        device: Device,
+        timestamp: Long,
+        conductance: Float,
+    ) {
+        // Example app currently does not visualize EDA – hook kept for completeness.
+    }
+
+    override fun didReceiveGPS(
+        device: Device,
+        timestamp: Long,
+        latitude: Double,
+        longitude: Double,
+        altitude: Double,
+        speed: Float,
+        heading: Float,
+        hdop: Float,
+    ) {
+        // GPS samples are ignored in UI; add handling here if needed.
+    }
+
     override fun didReceiveBodyPosition(
         device: Device,
         timestamp: Long,
@@ -331,8 +352,6 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         timestamp: Long,
         value: Int,
     ) {}
-
-    override fun didReceiveCommand(device: Device) {}
 
     override fun didReceiveError(error: String) {
         Logger.debug("Error: $error")
@@ -438,6 +457,23 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         yaw: Float,
     ) {}
 
+    override fun didReceivePastEDA(
+        device: Device,
+        timestamp: Long,
+        conductance: Float,
+    ) {}
+
+    override fun didReceivePastGPS(
+        device: Device,
+        timestamp: Long,
+        latitude: Double,
+        longitude: Double,
+        altitude: Double,
+        speed: Float,
+        heading: Float,
+        hdop: Float,
+    ) {}
+
     override fun didReceivePastBodyPosition(
         device: Device,
         timestamp: Long,
@@ -470,10 +506,10 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         value: Int,
     ) {}
 
-    override fun didReceiveMessage(
+    override fun didReceivePayload(
         device: Device,
         process: String,
-        message: String,
+        payload: ByteArray,
     ) {}
 
     override fun didReceiveSignalQuality(
