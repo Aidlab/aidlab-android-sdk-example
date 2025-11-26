@@ -34,6 +34,7 @@ data class DeviceData(
     val skinTemperature: MutableState<Float?>,
     val activity: MutableState<String?>,
     val steps: MutableState<Int>,
+    val exercise: MutableState<String?>,
     val ecgSamples: MutableState<List<Float>>,
 )
 
@@ -147,6 +148,7 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
                 skinTemperature = mutableStateOf(null),
                 activity = mutableStateOf("Unknown"),
                 steps = mutableStateOf(0),
+                exercise = mutableStateOf(null),
                 ecgSamples = mutableStateOf(emptyList()),
             )
         this.connectedDevice.value = device
@@ -163,6 +165,7 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
                 DataType.SKIN_TEMPERATURE,
                 DataType.STEPS,
                 DataType.ACTIVITY,
+                DataType.MOTION,
             )
         device.collect(dataTypes, dataTypes)
     }
@@ -345,7 +348,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     override fun didDetectExercise(
         device: Device,
         exercise: Exercise,
-    ) {}
+    ) {
+        deviceData?.exercise?.value = exercise.toString()
+    }
 
     override fun didReceiveSoundVolume(
         device: Device,
@@ -510,7 +515,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         device: Device,
         process: String,
         payload: ByteArray,
-    ) {}
+    ) {
+        Logger.debug("Payload from $process (${payload.size} B)")
+    }
 
     override fun didReceiveSignalQuality(
         device: Device,

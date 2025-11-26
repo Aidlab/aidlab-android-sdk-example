@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -31,6 +33,7 @@ fun DeviceDetailsScreen(
             modifier =
                 Modifier
                     .fillMaxSize()
+                    .statusBarsPadding()
                     .padding(16.dp)
                     .align(Alignment.TopCenter)
                     .verticalScroll(rememberScrollState()),
@@ -47,6 +50,7 @@ fun DeviceDetailsScreen(
             DeviceInfoCard(label = "RR interval", value = device.rr.value?.toString() ?: "Unknown")
             DeviceInfoCard(label = "Activity", value = device.activity.value ?: "Unknown")
             DeviceInfoCard(label = "Steps", value = device.steps.value.toString())
+            DeviceInfoCard(label = "Last exercise", value = device.exercise.value ?: "None")
             DeviceInfoCard(
                 label = "Skin temperature",
                 value = device.skinTemperature.value?.let { String.format("%.1f °C", it) } ?: "Unknown",
@@ -74,6 +78,7 @@ fun DeviceDetailsScreen(
             modifier =
                 Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
                     .padding(16.dp)
                     .align(Alignment.BottomCenter),
         ) {
