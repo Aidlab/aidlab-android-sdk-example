@@ -46,6 +46,10 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
 
     private var deviceData: DeviceData? = null
 
+    private var lastConnectedAddress: String? = null
+    private var shouldAutoReconnectToLastDevice: Boolean = true
+    private var isUserInitiatedDisconnect: Boolean = false
+
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             val allPermissionsGranted = permissions.entries.all { it.value }
@@ -72,6 +76,7 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
 
         if (connectedDevice.value != null) {
             DeviceDetailsScreen(device = deviceData!!, onDisconnect = {
+                isUserInitiatedDisconnect = true
                 connectedDevice.value?.disconnect()
             })
         } else {
@@ -125,6 +130,18 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         device: Device,
         rssi: Int,
     ) {
+        if (shouldAutoReconnectToLastDevice &&
+            connectedDevice.value == null &&
+            lastConnectedAddress != null &&
+            device.address() == lastConnectedAddress
+        ) {
+            shouldAutoReconnectToLastDevice = false
+            isUserInitiatedDisconnect = false
+            device.connect(this)
+            aidlabManager.stopScan()
+            return
+        }
+
         // Don't add duplicated devices (based on address)
         if (detectedDevices.none { it.address() == device.address() }) {
             detectedDevices.add(device)
@@ -134,6 +151,10 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     // -- DeviceDelegate ---------------------------------------------------------------------------
 
     override fun didConnect(device: Device) {
+        lastConnectedAddress = device.address()
+        shouldAutoReconnectToLastDevice = true
+        isUserInitiatedDisconnect = false
+
         deviceData =
             DeviceData(
                 name = mutableStateOf(device.name() ?: ""),
@@ -174,11 +195,19 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         device: Device,
         disconnectReason: DisconnectReason,
     ) {
+        val shouldResumeAutoReconnect = !isUserInitiatedDisconnect
+        isUserInitiatedDisconnect = false
+
         connectedDevice.value = null
         deviceData = null
         detectedDevices.clear()
 
         Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show()
+
+        if (shouldResumeAutoReconnect && lastConnectedAddress != null) {
+            shouldAutoReconnectToLastDevice = true
+            aidlabManager.scan()
+        }
     }
 
     override fun didReceiveECG(
@@ -297,12 +326,6 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
             deviceData?.steps?.value = it + value.toInt()
         }
     }
-
-    override fun didReceiveSoundFeatures(
-        device: Device,
-        timestamp: Long,
-        values: FloatArray,
-    ) {}
 
     override fun didReceiveHeartRate(
         device: Device,
@@ -495,12 +518,6 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         device: Device,
         timestamp: Long,
         value: Int,
-    ) {}
-
-    override fun didReceivePastSoundFeatures(
-        device: Device,
-        timestamp: Long,
-        values: FloatArray,
     ) {}
 
     override fun didDetectPastUserEvent(timestamp: Long) {}
