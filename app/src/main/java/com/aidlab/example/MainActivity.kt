@@ -18,8 +18,19 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.aidlab.sdk.*
-import java.util.*
+import com.aidlab.sdk.ActivityType
+import com.aidlab.sdk.AidlabManager
+import com.aidlab.sdk.AidlabManagerDelegate
+import com.aidlab.sdk.BodyPosition
+import com.aidlab.sdk.DataType
+import com.aidlab.sdk.Device
+import com.aidlab.sdk.DeviceDelegate
+import com.aidlab.sdk.DisconnectReason
+import com.aidlab.sdk.Exercise
+import com.aidlab.sdk.Logger
+import com.aidlab.sdk.SyncState
+import com.aidlab.sdk.WearState
+import java.util.EnumSet
 
 data class DeviceData(
     val name: MutableState<String>,
@@ -71,6 +82,7 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     }
 
     @Composable
+    @Suppress("FunctionName")
     fun MainActivityScreen(detectedDevices: List<Device>) {
         val isScanning = remember { mutableStateOf(false) }
 
@@ -350,7 +362,10 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     ) {
     }
 
-    override fun pressureWearStateDidChange(device: Device, wearState: WearState) {
+    override fun pressureWearStateDidChange(
+        device: Device,
+        wearState: WearState,
+    ) {
     }
 
     override fun didReceiveRespirationRate(

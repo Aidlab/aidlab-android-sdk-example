@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package com.aidlab.example
 
 import androidx.compose.foundation.clickable
@@ -13,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.aidlab.sdk.Device
+import java.util.Locale
 
 @Composable
 fun DeviceListItem(
@@ -33,7 +36,7 @@ fun DeviceListItem(
             modifier = Modifier.padding(16.dp),
         ) {
             Text(text = device.name() ?: "Unknown Device", style = MaterialTheme.typography.h6)
-            Text(text = device.address().lowercase(), style = MaterialTheme.typography.body2)
+            Text(text = device.address().lowercase(Locale.ROOT), style = MaterialTheme.typography.body2)
         }
     }
 }

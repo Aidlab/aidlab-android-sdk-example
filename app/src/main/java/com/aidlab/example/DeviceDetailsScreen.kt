@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package com.aidlab.example
 
 import androidx.compose.foundation.layout.Box
@@ -22,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import java.util.Locale
 
 @Composable
 fun DeviceDetailsScreen(
@@ -53,7 +56,7 @@ fun DeviceDetailsScreen(
             DeviceInfoCard(label = "Last exercise", value = device.exercise.value ?: "None")
             DeviceInfoCard(
                 label = "Skin temperature",
-                value = device.skinTemperature.value?.let { String.format("%.1f °C", it) } ?: "Unknown",
+                value = device.skinTemperature.value?.let { String.format(Locale.US, "%.1f °C", it) } ?: "Unknown",
             )
 
             Card(

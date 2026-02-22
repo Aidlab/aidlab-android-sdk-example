@@ -1,0 +1,36 @@
+processors:
+  active: true
+
+config:
+  validation: true
+
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+# Focus on safety signals, keep example code practical.
+style:
+  active: false
+complexity:
+  active: false
+performance:
+  active: false
+exceptions:
+  active: false
+naming:
+  active: false
+comments:
+  active: false
+
+potential-bugs:
+  active: true
+  UnsafeCallOnNullableType:
+    active: true
+  UnsafeCast:
+    active: true
+  NullableToStringCall:
+    active: true
+  IteratorHasNextCallsNextMethod:
+    active: true
+  MapGetWithNotNullAssertionOperator:
+    active: true

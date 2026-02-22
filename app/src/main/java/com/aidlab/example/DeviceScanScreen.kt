@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package com.aidlab.example
 
 import androidx.compose.foundation.background

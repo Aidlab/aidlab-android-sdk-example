@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'org.jetbrains.kotlin.plugin.compose'
 apply plugin: 'org.jlleitschuh.gradle.ktlint'
+apply plugin: 'io.gitlab.arturbosch.detekt'
 
 android {
 
@@ -45,6 +46,26 @@ android {
         }
     }
     buildToolsVersion = '35.0.0'
+
+    lint {
+        abortOnError true
+        warningsAsErrors true
+        disable 'AndroidGradlePluginVersion', 'GradleDependency'
+    }
+}
+
+detekt {
+    toolVersion = "1.23.8"
+    config = files("../detekt.yml")
+    buildUponDefaultConfig = false
+    allRules = false
+    autoCorrect = false
+    ignoreFailures = false
+    reports {
+        html.required.set(true)
+        xml.required.set(false)
+        txt.required.set(true)
+    }
 }
 
 // Align Kotlin toolchain with Java 17
