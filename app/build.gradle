@@ -77,7 +77,7 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.9.4"
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation 'com.aidlab:sdk:2.1.5'
+    implementation 'com.aidlab:sdk:2.1.6'
 
     testImplementation 'junit:junit:4.13.2'
 
