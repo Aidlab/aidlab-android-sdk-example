@@ -8,19 +8,19 @@ build:
   maxIssues: 0
   excludeCorrectable: false
 
-# Focus on safety signals, keep example code practical.
+# Keep full Detekt coverage with maxIssues=0 gate.
 style:
-  active: false
+  active: true
 complexity:
-  active: false
+  active: true
 performance:
-  active: false
+  active: true
 exceptions:
-  active: false
+  active: true
 naming:
-  active: false
+  active: true
 comments:
-  active: false
+  active: true
 
 potential-bugs:
   active: true

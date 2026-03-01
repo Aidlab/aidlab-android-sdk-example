@@ -25,6 +25,7 @@ android {
     // Ensure Kotlin JVM target matches Java 17
     kotlinOptions {
         jvmTarget = '17'
+        allWarningsAsErrors = true
     }
 
     defaultConfig {
