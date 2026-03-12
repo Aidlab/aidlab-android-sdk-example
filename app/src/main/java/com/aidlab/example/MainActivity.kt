@@ -18,6 +18,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.core.content.edit
 import com.aidlab.sdk.ActivityType
 import com.aidlab.sdk.AidlabManager
 import com.aidlab.sdk.AidlabManagerDelegate
@@ -240,10 +241,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
 
     private fun rememberLastConnectedDevice(address: String) {
         lastConnectedAddress = address
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-            .edit()
-            .putString(KEY_LAST_CONNECTED_ADDRESS, address)
-            .apply()
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit {
+            putString(KEY_LAST_CONNECTED_ADDRESS, address)
+        }
     }
 
     override fun didReceiveECG(
@@ -286,9 +286,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     override fun didReceiveGyroscope(
         device: Device,
         timestamp: Long,
-        qx: Float,
-        qy: Float,
-        qz: Float,
+        gx: Float,
+        gy: Float,
+        gz: Float,
     ) {}
 
     override fun didReceiveMagnetometer(
@@ -420,7 +420,10 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         value: Int,
     ) {}
 
-    override fun didReceiveError(error: String) {
+    override fun didReceiveError(
+        device: Device,
+        error: String,
+    ) {
         Logger.debug("Error: $error")
     }
 
@@ -494,9 +497,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     override fun didReceivePastGyroscope(
         device: Device,
         timestamp: Long,
-        qx: Float,
-        qy: Float,
-        qz: Float,
+        gx: Float,
+        gy: Float,
+        gz: Float,
     ) {}
 
     override fun didReceivePastMagnetometer(
@@ -559,7 +562,10 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         value: Int,
     ) {}
 
-    override fun didDetectPastUserEvent(timestamp: Long) {}
+    override fun didDetectPastUserEvent(
+        device: Device,
+        timestamp: Long,
+    ) {}
 
     override fun didReceivePastSignalQuality(
         device: Device,
