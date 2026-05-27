@@ -50,7 +50,10 @@ data class DeviceData(
     val ecgSamples: MutableState<List<Float>>,
 )
 
-class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate {
+class MainActivity :
+    ComponentActivity(),
+    DeviceDelegate,
+    AidlabManagerDelegate {
     private companion object {
         private const val PREFS_NAME = "aidlab_example"
         private const val KEY_LAST_CONNECTED_ADDRESS = "last_connected_address"
@@ -151,11 +154,12 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
     }
 
     override fun onDeviceScanFailed(errorCode: Int) {
-        Toast.makeText(
-            this,
-            "Scan failed: $errorCode",
-            Toast.LENGTH_SHORT,
-        ).show()
+        Toast
+            .makeText(
+                this,
+                "Scan failed: $errorCode",
+                Toast.LENGTH_SHORT,
+            ).show()
     }
 
     override fun didDiscover(
@@ -234,10 +238,9 @@ class MainActivity : ComponentActivity(), DeviceDelegate, AidlabManagerDelegate 
         }
     }
 
-    private fun loadLastConnectedAddress(): String? {
-        return getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+    private fun loadLastConnectedAddress(): String? =
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
             .getString(KEY_LAST_CONNECTED_ADDRESS, null)
-    }
 
     private fun rememberLastConnectedDevice(address: String) {
         lastConnectedAddress = address

@@ -4,11 +4,7 @@ processors:
 config:
   validation: true
 
-build:
-  maxIssues: 0
-  excludeCorrectable: false
-
-# Keep full Detekt coverage with maxIssues=0 gate.
+# Keep full Detekt coverage; the Gradle task fails on reported findings.
 style:
   active: true
 complexity:

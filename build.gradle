@@ -5,11 +5,10 @@ ext {
     minSdkVersion = 28
     targetSdkVersion = 36
     javaVersion = JavaVersion.VERSION_17
-    kotlin_version = '2.1.20'
+    kotlin_version = '2.3.21'
 }
 
 buildscript {
-    ext.kotlin_version = '2.1.20'
     repositories {
         mavenCentral()
         google()
@@ -18,11 +17,10 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.12.3'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:$kotlin_version"
-        classpath 'org.jlleitschuh.gradle:ktlint-gradle:12.1.0'
-        classpath 'io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.8'
+        classpath 'com.android.tools.build:gradle:9.2.1'
+        classpath "org.jetbrains.kotlin:compose-compiler-gradle-plugin:2.3.21"
+        classpath 'org.jlleitschuh.gradle:ktlint-gradle:14.2.0'
+        classpath "dev.detekt:detekt-gradle-plugin:2.0.0-alpha.3"
         
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
