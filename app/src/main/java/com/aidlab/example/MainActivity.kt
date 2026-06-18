@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.content.edit
 import com.aidlab.sdk.ActivityType
+import com.aidlab.sdk.AidlabError
 import com.aidlab.sdk.AidlabManager
 import com.aidlab.sdk.AidlabManagerDelegate
 import com.aidlab.sdk.BodyPosition
@@ -425,7 +426,7 @@ class MainActivity :
 
     override fun didReceiveError(
         device: Device,
-        error: String,
+        error: AidlabError,
     ) {
         Logger.debug("Error: $error")
     }
