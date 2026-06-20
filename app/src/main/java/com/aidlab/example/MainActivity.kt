@@ -46,7 +46,7 @@ data class DeviceData(
     val respirationRate: MutableState<Int?>,
     val skinTemperature: MutableState<Float?>,
     val activity: MutableState<String?>,
-    val steps: MutableState<Int>,
+    val steps: MutableState<Long>,
     val exercise: MutableState<String?>,
     val ecgSamples: MutableState<List<Float>>,
 )
@@ -201,7 +201,7 @@ class MainActivity :
                 respirationRate = mutableStateOf(null),
                 skinTemperature = mutableStateOf(null),
                 activity = mutableStateOf("Unknown"),
-                steps = mutableStateOf(0),
+                steps = mutableStateOf(0L),
                 exercise = mutableStateOf(null),
                 ecgSamples = mutableStateOf(emptyList()),
             )
@@ -363,7 +363,7 @@ class MainActivity :
         value: Long,
     ) {
         deviceData?.steps?.value?.let {
-            deviceData?.steps?.value = it + value.toInt()
+            deviceData?.steps?.value = it + value
         }
     }
 
