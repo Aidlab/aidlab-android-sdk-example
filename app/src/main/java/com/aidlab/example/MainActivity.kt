@@ -19,8 +19,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.content.edit
+import androidx.lifecycle.lifecycleScope
 import com.aidlab.sdk.ActivityType
 import com.aidlab.sdk.AidlabError
+import com.aidlab.sdk.AidlabErrorCode
 import com.aidlab.sdk.AidlabManager
 import com.aidlab.sdk.AidlabManagerDelegate
 import com.aidlab.sdk.BodyPosition
@@ -32,6 +34,7 @@ import com.aidlab.sdk.Exercise
 import com.aidlab.sdk.Logger
 import com.aidlab.sdk.SyncState
 import com.aidlab.sdk.WearState
+import kotlinx.coroutines.launch
 import java.util.EnumSet
 
 data class DeviceData(
@@ -221,7 +224,28 @@ class MainActivity :
                 DataType.ACTIVITY,
                 DataType.MOTION,
             )
-        device.collect(dataTypes, dataTypes)
+        lifecycleScope.launch {
+            try {
+                val pid = device.collect(dataTypes, dataTypes)
+                if (pid == null) {
+                    didReceiveError(
+                        device,
+                        AidlabError(
+                            AidlabErrorCode.SDK,
+                            "Device rejected collect command",
+                        ),
+                    )
+                }
+            } catch (throwable: Throwable) {
+                didReceiveError(
+                    device,
+                    AidlabError(
+                        AidlabErrorCode.SDK,
+                        "Collect failed: ${throwable.message}",
+                    ),
+                )
+            }
+        }
     }
 
     override fun didDisconnect(
@@ -581,8 +605,9 @@ class MainActivity :
         device: Device,
         process: String,
         payload: ByteArray,
+        options: Long,
     ) {
-        Logger.debug("Payload from $process (${payload.size} B)")
+        Logger.debug("Payload from $process (${payload.size} B, options=$options)")
     }
 
     override fun didReceiveSignalQuality(

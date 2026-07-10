@@ -1,1 +1,3 @@
 include ':app'
+include ':sdk'
+project(':sdk').projectDir = file('../aidlab-android-sdk/sdk')
