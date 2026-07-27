@@ -1,3 +1,17 @@
 include ':app'
-include ':sdk'
-project(':sdk').projectDir = file('../aidlab-android-sdk/sdk')
+
+def useLocalAidlabSdk = providers.gradleProperty('useLocalAidlabSdk')
+    .map { it.toBoolean() }
+    .getOrElse(false)
+
+if (useLocalAidlabSdk) {
+    def localSdkDirectory = file('../aidlab-android-sdk/sdk')
+    if (!localSdkDirectory.isDirectory()) {
+        throw new GradleException(
+            "Local Aidlab SDK not found at ${localSdkDirectory}. " +
+                "Run from the aidlab-sdk monorepo or omit -PuseLocalAidlabSdk=true."
+        )
+    }
+    include ':sdk'
+    project(':sdk').projectDir = localSdkDirectory
+}

@@ -54,7 +54,11 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.11.0"
     implementation 'androidx.appcompat:appcompat:1.7.1'
-    implementation project(':sdk')
+    if (providers.gradleProperty('useLocalAidlabSdk').map { it.toBoolean() }.getOrElse(false)) {
+        implementation project(':sdk')
+    } else {
+        implementation 'com.aidlab:sdk:2.5.1'
+    }
 
     testImplementation 'junit:junit:4.13.2'
 
