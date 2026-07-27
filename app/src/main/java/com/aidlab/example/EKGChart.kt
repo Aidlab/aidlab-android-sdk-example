@@ -25,7 +25,10 @@ fun EKGChart(ecgSamples: List<Float>) {
         val maxSamples = 2000
         val sampleSpacing = size.width / maxSamples
 
-        fun scaleSample(sample: Float): Float = (sample - adjustedMinSample) / (adjustedMaxSample - adjustedMinSample) * size.height
+        fun scaleSample(sample: Float): Float =
+            (sample - adjustedMinSample) /
+                (adjustedMaxSample - adjustedMinSample) *
+                size.height
 
         var lastX = 0f
         ecgSamples.takeLast(maxSamples).forEachIndexed { index, sample ->

@@ -3,20 +3,52 @@ processors:
 
 config:
   validation: true
+  warningsAsErrors: true
 
 # Keep full Detekt coverage; the Gradle task fails on reported findings.
 style:
   active: true
+  MagicNumber:
+    # UI dimensions, protocol identifiers, and sample values are intentionally numeric.
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  ReturnCount:
+    active: true
+    max: 4
 complexity:
   active: true
+  ComplexCondition:
+    active: true
+    allowedConditions: 4
+  LargeClass:
+    active: true
+    allowedLines: 1500
+  TooManyFunctions:
+    active: true
+    allowedFunctionsPerFile: 20
+    allowedFunctionsPerClass: 140
+    allowedFunctionsPerInterface: 60
+    allowedFunctionsPerObject: 20
+    allowedFunctionsPerEnum: 20
 performance:
   active: true
 exceptions:
   active: true
+  TooGenericExceptionCaught:
+    active: true
+    allowedExceptionNameRegex: '_(ignore|expected).*|commandError|handlerError'
 naming:
   active: true
 comments:
   active: true
+
+empty-blocks:
+  active: true
+  EmptyFunctionBlock:
+    active: true
+    ignoreOverridden: true
 
 potential-bugs:
   active: true

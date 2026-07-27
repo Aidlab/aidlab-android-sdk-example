@@ -37,14 +37,13 @@ android {
     lint {
         abortOnError = true
         warningsAsErrors = true
-        disable 'AndroidGradlePluginVersion', 'GradleDependency'
     }
 }
 
 detekt {
-    toolVersion = "2.0.0-alpha.3"
+    toolVersion = "2.0.0-alpha.5"
     config = files("../detekt.yml")
-    buildUponDefaultConfig = false
+    buildUponDefaultConfig = true
     allRules = false
     autoCorrect = false
     ignoreFailures = false
@@ -53,7 +52,7 @@ detekt {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.10.0"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:2.11.0"
     implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation project(':sdk')
 
@@ -62,10 +61,10 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0'
 
-    implementation 'androidx.compose.ui:ui:1.11.2'
-    implementation 'androidx.compose.material:material:1.11.2'
-    implementation 'androidx.compose.ui:ui-tooling-preview:1.11.2'
+    implementation 'androidx.compose.ui:ui:1.11.4'
+    implementation 'androidx.compose.material:material:1.11.4'
+    implementation 'androidx.compose.ui:ui-tooling-preview:1.11.4'
     implementation "androidx.activity:activity-compose:1.13.0"
-    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.11.2'
-    debugImplementation 'androidx.compose.ui:ui-tooling:1.11.2'
+    androidTestImplementation 'androidx.compose.ui:ui-test-junit4:1.11.4'
+    debugImplementation 'androidx.compose.ui:ui-tooling:1.11.4'
 }

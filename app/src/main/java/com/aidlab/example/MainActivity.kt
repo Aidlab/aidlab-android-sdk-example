@@ -86,7 +86,11 @@ class MainActivity :
     private fun checkAndStartScan() {
         val requiredPermissions =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.ACCESS_FINE_LOCATION)
+                arrayOf(
+                    Manifest.permission.BLUETOOTH_SCAN,
+                    Manifest.permission.BLUETOOTH_CONNECT,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                )
             } else {
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
             }
@@ -142,7 +146,7 @@ class MainActivity :
         super.onStop()
         appIsInBackground = true
         if (connectedDevice.value == null && lastConnectedAddress != null) {
-            // Best-effort background scan (requires permissions and, on some devices, a foreground service for reliability).
+            // Best-effort background scan. Some devices require a foreground service for reliability.
             aidlabManager.scan()
         }
     }
@@ -236,12 +240,12 @@ class MainActivity :
                         ),
                     )
                 }
-            } catch (throwable: Throwable) {
+            } catch (commandError: Throwable) {
                 didReceiveError(
                     device,
                     AidlabError(
                         AidlabErrorCode.SDK,
-                        "Collect failed: ${throwable.message}",
+                        "Collect failed: ${commandError.message}",
                     ),
                 )
             }
