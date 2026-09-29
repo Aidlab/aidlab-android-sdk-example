@@ -29,6 +29,15 @@ buildscript {
 
 allprojects {
     repositories {
+        def aidlabMavenRepository = providers.gradleProperty('aidlabMavenRepository').orNull
+        if (aidlabMavenRepository != null) {
+            exclusiveContent {
+                forRepository {
+                    maven { url = uri(aidlabMavenRepository) }
+                }
+                filter { includeGroup('com.aidlab') }
+            }
+        }
         mavenCentral()
         google()
         maven {
