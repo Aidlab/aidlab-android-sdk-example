@@ -466,7 +466,7 @@ class MainActivity :
 
     override fun didReceiveUnsynchronizedSize(
         device: Device,
-        unsynchronizedSize: Int,
+        unsynchronizedSize: Long,
         syncBytesPerSecond: Float,
     ) {}
 
