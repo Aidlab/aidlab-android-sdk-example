@@ -37,6 +37,8 @@ android {
     lint {
         abortOnError = true
         warningsAsErrors = true
+        // A newer release is not a defect, and it would fail every build from the day it appears.
+        disable 'AndroidGradlePluginVersion', 'GradleDependency', 'NewerVersionAvailable'
     }
 }
 
