@@ -607,11 +607,11 @@ class MainActivity :
 
     override fun didReceivePayload(
         device: Device,
-        process: String,
+        pid: Int,
         payload: ByteArray,
         options: Long,
     ) {
-        Logger.debug("Payload from $process (${payload.size} B, options=$options)")
+        Logger.debug("Payload (pid=$pid, ${payload.size} B, options=$options)")
     }
 
     override fun didReceiveSignalQuality(
