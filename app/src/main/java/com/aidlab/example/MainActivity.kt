@@ -116,7 +116,7 @@ class MainActivity :
                 },
                 onDeviceClick = { device ->
                     rememberLastConnectedDevice(device.address())
-                    device.connect(this@MainActivity) // errors via didReceiveError / didDisconnect
+                    connectTo(device)
                     isScanning.value = false
                     aidlabManager.stopScan()
                 },
@@ -180,13 +180,26 @@ class MainActivity :
             device.address() == lastConnectedAddress
         ) {
             aidlabManager.stopScan()
-            device.connect(this@MainActivity) // errors via didReceiveError / didDisconnect
+            connectTo(device)
             return
         }
 
         // Don't add duplicated devices (based on address)
         if (detectedDevices.none { it.address() == device.address() }) {
             detectedDevices.add(device)
+        }
+    }
+
+    private fun connectTo(device: Device) {
+        lifecycleScope.launch {
+            try {
+                device.connect(this@MainActivity)
+            } catch (error: IllegalStateException) {
+                Toast.makeText(this@MainActivity, "Connection failed: ${error.message}", Toast.LENGTH_SHORT).show()
+                if (appIsInBackground && lastConnectedAddress != null) {
+                    aidlabManager.scan()
+                }
+            }
         }
     }
 
