@@ -20,7 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
-import com.aidlab.sdk.ActivityType
+import com.aidlab.sdk.ActivityEvent
 import com.aidlab.sdk.AidlabError
 import com.aidlab.sdk.AidlabErrorCode
 import com.aidlab.sdk.AidlabManager
@@ -29,11 +29,12 @@ import com.aidlab.sdk.BodyPosition
 import com.aidlab.sdk.DataType
 import com.aidlab.sdk.Device
 import com.aidlab.sdk.DeviceDelegate
+import com.aidlab.sdk.DeviceEvent
 import com.aidlab.sdk.DisconnectReason
-import com.aidlab.sdk.Exercise
+import com.aidlab.sdk.ExerciseEvent
 import com.aidlab.sdk.Logger
 import com.aidlab.sdk.SyncState
-import com.aidlab.sdk.WearState
+import com.aidlab.sdk.WearStateEvent
 import kotlinx.coroutines.launch
 import java.util.EnumSet
 
@@ -390,14 +391,6 @@ class MainActivity :
         deviceData?.wearState?.value = bodyPosition.toString()
     }
 
-    override fun didReceiveActivity(
-        device: Device,
-        timestamp: Long,
-        activity: ActivityType,
-    ) {
-        deviceData?.activity?.value = activity.toString()
-    }
-
     override fun didReceiveSteps(
         device: Device,
         timestamp: Long,
@@ -431,12 +424,6 @@ class MainActivity :
     ) {
     }
 
-    override fun pressureWearStateDidChange(
-        device: Device,
-        wearState: WearState,
-    ) {
-    }
-
     override fun didReceiveRespirationRate(
         device: Device,
         timestamp: Long,
@@ -445,18 +432,20 @@ class MainActivity :
         deviceData?.respirationRate?.value = value
     }
 
-    override fun wearStateDidChange(
+    override fun didReceiveEvent(
         device: Device,
-        wearState: WearState,
+        event: DeviceEvent,
     ) {
-        deviceData?.wearState?.value = wearState.toString()
-    }
-
-    override fun didDetectExercise(
-        device: Device,
-        exercise: Exercise,
-    ) {
-        deviceData?.exercise?.value = exercise.toString()
+        if (event.isPast) {
+            return
+        }
+        when (event) {
+            is WearStateEvent -> deviceData?.wearState?.value = event.wearState.toString()
+            is ExerciseEvent -> deviceData?.exercise?.value = event.exercise.toString()
+            // A period that ends is reported before the next one starts; an unknown activity starts none.
+            is ActivityEvent ->
+                deviceData?.activity?.value = if (event.endTimestamp == null) event.activity.toString() else "Unknown"
+        }
     }
 
     override fun didReceiveSoundVolume(
@@ -517,12 +506,6 @@ class MainActivity :
         device: Device,
         timestamp: Long,
         value: Int,
-    ) {}
-
-    override fun didReceivePastActivity(
-        device: Device,
-        timestamp: Long,
-        activity: ActivityType,
     ) {}
 
     override fun didReceivePastSteps(
@@ -605,11 +588,6 @@ class MainActivity :
         device: Device,
         timestamp: Long,
         value: Int,
-    ) {}
-
-    override fun didDetectPastUserEvent(
-        device: Device,
-        timestamp: Long,
     ) {}
 
     override fun didReceivePastSignalQuality(
