@@ -596,7 +596,7 @@ class MainActivity :
         value: Int,
     ) {}
 
-    override fun didReceivePayload(
+    override fun didReceiveProcessOutput(
         device: Device,
         pid: Int,
         payload: ByteArray,
