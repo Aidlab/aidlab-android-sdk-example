@@ -2,7 +2,7 @@
 
 ext {
     compileSdkVersion = 37
-    minSdkVersion = 28
+    minSdkVersion = 31
     targetSdkVersion = 36
     javaVersion = JavaVersion.VERSION_17
     kotlin_version = '2.4.10'

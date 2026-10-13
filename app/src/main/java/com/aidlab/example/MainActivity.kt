@@ -6,7 +6,6 @@
 package com.aidlab.example
 
 import android.Manifest
-import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -30,6 +29,7 @@ import com.aidlab.sdk.DataType
 import com.aidlab.sdk.Device
 import com.aidlab.sdk.DeviceDelegate
 import com.aidlab.sdk.DeviceEvent
+import com.aidlab.sdk.DeviceEventType
 import com.aidlab.sdk.DisconnectReason
 import com.aidlab.sdk.ExerciseEvent
 import com.aidlab.sdk.Logger
@@ -85,17 +85,9 @@ class MainActivity :
         }
 
     private fun checkAndStartScan() {
-        val requiredPermissions =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                )
-            } else {
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-            }
-        requestPermissionLauncher.launch(requiredPermissions)
+        requestPermissionLauncher.launch(
+            arrayOf(Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.BLUETOOTH_CONNECT),
+        )
     }
 
     @Composable
@@ -239,12 +231,13 @@ class MainActivity :
                 DataType.ORIENTATION,
                 DataType.SKIN_TEMPERATURE,
                 DataType.STEPS,
-                DataType.ACTIVITY,
                 DataType.MOTION,
             )
+        // The events that didReceiveEvent shows.
+        val events = EnumSet.of(DeviceEventType.WEAR_STATE, DeviceEventType.EXERCISE, DeviceEventType.ACTIVITY)
         lifecycleScope.launch {
             try {
-                val pid = device.collect(dataTypes, dataTypes)
+                val pid = device.collect(dataTypes, dataTypes, events)
                 if (pid == null) {
                     didReceiveError(
                         device,
