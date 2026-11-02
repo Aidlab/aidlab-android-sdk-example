@@ -6,7 +6,7 @@ For answers to common questions about Aidlab, visit our [developer portal](https
 
 - Requires Android 12+ (API level 31+)
 - compileSdk 37, targetSdk 36
-- Uses Aidlab Android SDK 2.8.0 from Maven Central by default
+- Uses Aidlab Android SDK 2.9.0 from Maven Central by default
 - Works with recent Android Studio versions (e.g., 2025.1.2+)
 
 ## Build
